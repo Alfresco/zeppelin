@@ -22,6 +22,9 @@ import org.apache.zeppelin.annotation.ZeppelinApi;
 import org.apache.zeppelin.notebook.NotebookAuthorization;
 import org.apache.zeppelin.server.JsonResponse;
 import org.apache.zeppelin.ticket.TicketContainer;
+import org.apache.zeppelin.user.Credentials;
+import org.apache.zeppelin.user.UserCredentials;
+import org.apache.zeppelin.user.UsernamePassword;
 import org.apache.zeppelin.utils.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +34,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -43,6 +47,8 @@ import java.util.Map;
 @Produces("application/json")
 public class LoginRestApi {
   private static final Logger LOG = LoggerFactory.getLogger(LoginRestApi.class);
+  private static final String ENTITY_NAME = "jdbc.alfresco";
+  private Credentials credentials;
 
   /**
    * Required by Swagger.
@@ -51,6 +57,9 @@ public class LoginRestApi {
     super();
   }
 
+  public LoginRestApi(Credentials credentials) {
+    this.credentials = credentials;
+  }
 
   /**
    * Post Login
@@ -63,7 +72,7 @@ public class LoginRestApi {
   @POST
   @ZeppelinApi
   public Response postLogin(@FormParam("userName") String userName,
-                            @FormParam("password") String password) {
+                            @FormParam("password") String password) throws IOException {
     JsonResponse response = null;
     // ticket set to anonymous for anonymous user. Simplify testing.
     Subject currentUser = org.apache.shiro.SecurityUtils.getSubject();
@@ -78,6 +87,10 @@ public class LoginRestApi {
         currentUser.getSession().stop();
         currentUser.getSession(true);
         currentUser.login(token);
+
+        UserCredentials uc = credentials.getUserCredentials(userName);
+        uc.putUsernamePassword(ENTITY_NAME, new UsernamePassword(userName, password));
+        credentials.putUserCredentials(userName, uc);
 
         HashSet<String> roles = SecurityUtils.getRoles();
         String principal = SecurityUtils.getPrincipal();
@@ -123,10 +136,12 @@ public class LoginRestApi {
   @POST
   @Path("logout")
   @ZeppelinApi
-  public Response logout() {
+  public Response logout() throws IOException {
     JsonResponse response;
     Subject currentUser = org.apache.shiro.SecurityUtils.getSubject();
-    TicketContainer.instance.removeTicket(SecurityUtils.getPrincipal());
+    String userName = SecurityUtils.getPrincipal();
+    TicketContainer.instance.removeTicket(userName);
+    credentials.removeCredentialEntity(userName, ENTITY_NAME);
     currentUser.getSession().stop();
     currentUser.logout();
     response = new JsonResponse(Response.Status.UNAUTHORIZED, "", "");
