@@ -18,6 +18,7 @@ package org.apache.zeppelin.rest;
 
 import com.google.gson.Gson;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.util.Collection;
 import java.util.HashMap;
@@ -48,6 +49,9 @@ import org.apache.zeppelin.realm.jwt.JWTAuthenticationToken;
 import org.apache.zeppelin.realm.jwt.KnoxJwtRealm;
 import org.apache.zeppelin.server.JsonResponse;
 import org.apache.zeppelin.ticket.TicketContainer;
+import org.apache.zeppelin.user.Credentials;
+import org.apache.zeppelin.user.UserCredentials;
+import org.apache.zeppelin.user.UsernamePassword;
 import org.apache.zeppelin.utils.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +65,13 @@ import org.slf4j.LoggerFactory;
 public class LoginRestApi {
 
   private static final Logger LOG = LoggerFactory.getLogger(LoginRestApi.class);
+  private static final String ENTITY_NAME = "jdbc.alfresco";
+  private Credentials credentials;
   private static final Gson gson = new Gson();
+
+  public LoginRestApi(Credentials credentials) {
+    this.credentials = credentials;
+  }
 
   /**
    * Required by Swagger.
@@ -181,11 +191,12 @@ public class LoginRestApi {
    * After getting this ticket, access through websockets become safe
    *
    * @return 200 response
+   * @throws IOException 
    */
   @POST
   @ZeppelinApi
   public Response postLogin(@FormParam("userName") String userName,
-      @FormParam("password") String password) {
+      @FormParam("password") String password) throws IOException {
     JsonResponse response = null;
     // ticket set to anonymous for anonymous user. Simplify testing.
     Subject currentUser = org.apache.shiro.SecurityUtils.getSubject();
@@ -201,6 +212,12 @@ public class LoginRestApi {
 
     if (response == null) {
       response = new JsonResponse(Response.Status.FORBIDDEN, "", "");
+    }
+    else
+    {
+      UserCredentials uc = credentials.getUserCredentials(userName);
+      uc.putUsernamePassword(ENTITY_NAME, new UsernamePassword(userName, password));
+      credentials.putUserCredentials(userName, uc);
     }
 
     LOG.warn(response.toString());

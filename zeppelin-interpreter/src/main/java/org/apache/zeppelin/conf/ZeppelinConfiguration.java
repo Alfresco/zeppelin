@@ -740,7 +740,7 @@ public class ZeppelinConfiguration extends XMLConfiguration {
         "org.apache.zeppelin.notebook.repo.GitNotebookRepo"),
     ZEPPELIN_NOTEBOOK_ONE_WAY_SYNC("zeppelin.notebook.one.way.sync", false),
     // whether by default note is public or private
-    ZEPPELIN_NOTEBOOK_PUBLIC("zeppelin.notebook.public", true),
+    ZEPPELIN_NOTEBOOK_PUBLIC("zeppelin.notebook.public", false),
     ZEPPELIN_INTERPRETER_REMOTE_RUNNER("zeppelin.interpreter.remoterunner",
         System.getProperty("os.name")
                 .startsWith("Windows") ? "bin/interpreter.cmd" : "bin/interpreter.sh"),
@@ -763,7 +763,7 @@ public class ZeppelinConfiguration extends XMLConfiguration {
     ZEPPELIN_ALLOWED_ORIGINS("zeppelin.server.allowed.origins", "*"),
     ZEPPELIN_ANONYMOUS_ALLOWED("zeppelin.anonymous.allowed", true),
     ZEPPELIN_USERNAME_FORCE_LOWERCASE("zeppelin.username.force.lowercase", false),
-    ZEPPELIN_CREDENTIALS_PERSIST("zeppelin.credentials.persist", true),
+    ZEPPELIN_CREDENTIALS_PERSIST("zeppelin.credentials.persist", false),
     ZEPPELIN_CREDENTIALS_ENCRYPT_KEY("zeppelin.credentials.encryptKey", null),
     ZEPPELIN_WEBSOCKET_MAX_TEXT_MESSAGE_SIZE("zeppelin.websocket.max.text.message.size", "1024000"),
     ZEPPELIN_SERVER_DEFAULT_DIR_ALLOWED("zeppelin.server.default.dir.allowed", false),

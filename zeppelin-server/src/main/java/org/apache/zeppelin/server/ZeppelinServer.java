@@ -435,7 +435,7 @@ public class ZeppelinServer extends Application {
     SecurityRestApi securityApi = new SecurityRestApi();
     singletons.add(securityApi);
 
-    LoginRestApi loginRestApi = new LoginRestApi();
+    LoginRestApi loginRestApi = new LoginRestApi(credentials);
     singletons.add(loginRestApi);
 
     ConfigurationsRestApi settingsApi = new ConfigurationsRestApi(notebook);
